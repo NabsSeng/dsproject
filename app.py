@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from src.routes.code_generator import code_generator_bp
 from src.middleware.validation import ValidationError
 from src.utils.logger import setup_logger
+from src.services.cache_service import cache_service
 
 # Load environment variables
 load_dotenv()
@@ -23,11 +24,17 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
     app.config['DEBUG'] = os.getenv('FLASK_ENV') == 'development'
     
-    # Setup CORS
-    CORS(app, origins="*")
+    # Setup CORS - Allow all origins and methods for web app integration
+    CORS(app, 
+         origins="*",
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization"])
     
     # Setup logging
     setup_logger()
+    
+    # Make cache service available to the app
+    app.cache_service = cache_service
     
     # Register blueprints
     app.register_blueprint(code_generator_bp, url_prefix='/api')
@@ -46,6 +53,31 @@ def create_app():
     @app.route('/health')
     def health_check():
         return jsonify({'status': 'healthy', 'service': 'code-generator-api'})
+    
+    # Cache management endpoints
+    @app.route('/api/cache/info')
+    def cache_info():
+        """Get cache statistics."""
+        info = cache_service.get_cache_info()
+        return jsonify(info)
+    
+    @app.route('/api/cache/clear-expired', methods=['POST'])
+    def clear_expired_cache():
+        """Clear expired cache entries."""
+        cleared_count = cache_service.clear_expired()
+        return jsonify({
+            'message': f'Cleared {cleared_count} expired cache entries',
+            'cleared_count': cleared_count
+        })
+    
+    @app.route('/api/cache/<task_id>', methods=['DELETE'])
+    def delete_cache(task_id):
+        """Delete cache for specific task ID."""
+        success = cache_service.delete(task_id)
+        if success:
+            return jsonify({'message': f'Cache deleted for task: {task_id}'})
+        else:
+            return jsonify({'message': f'No cache found for task: {task_id}'}), 404
     
     return app
 

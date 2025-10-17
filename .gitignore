@@ -23,6 +23,9 @@ virtualenv/
 # Environment variables
 .env
 
+# Cache directory
+cache/
+
 # Logs
 logs/
 *.log
