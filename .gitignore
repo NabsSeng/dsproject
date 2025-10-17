@@ -4,12 +4,21 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Virtual environments
 env/
 venv/
 .venv/
+.venv_*/
 ENV/
 env.bak/
 venv.bak/
+myenv/
+.myenv/
+python-env/
+.python-env/
+virtualenv/
+.virtualenv/
 
 # Environment variables
 .env

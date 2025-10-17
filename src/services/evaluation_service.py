@@ -23,7 +23,7 @@ class EvaluationService:
         Returns:
             bool: True if secret is valid, False otherwise
         """
-        api_secret = os.getenv('API_SECRET', "123456")
+        api_secret = os.getenv('API_SECRET')
         if not api_secret:
             self.logger.warning("API_SECRET environment variable not set")
             return False
